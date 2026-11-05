@@ -55,7 +55,7 @@
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
         <div>
           <h2 class="text-lg font-bold text-slate-900">Ukens Middagsmeny</h2>
-          <p class="text-xs text-slate-500">Fredag er låst til Pizza & Lørdag til Taco 🍕🌮</p>
+          <p class="text-xs text-slate-500">Fredag = Pizza 🍕 | Lørdag = Taco 🌮</p>
         </div>
         <button onclick="generateWeekPlan()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 shadow-sm">
           <i class="fa-solid fa-rotate"></i> Generer ny uke
@@ -75,9 +75,9 @@
         </div>
         <div class="relative z-10 flex justify-between items-end">
           <div>
-            <span class="text-xs uppercase tracking-wider text-emerald-300 font-bold">Beregnet innkjøp denne uken</span>
+            <span class="text-xs uppercase tracking-wider text-emerald-300 font-bold">Beregnet innkjøp (Rema/Kiwi-snitt)</span>
             <div class="text-3xl font-black mt-1" id="shopping-total-price">0 kr</div>
-            <p class="text-xs text-emerald-200/80 mt-1" id="shopping-items-count">0 varer valgt</p>
+            <p class="text-xs text-emerald-200/80 mt-1" id="shopping-items-count">0 varer igjen på listen</p>
           </div>
           <button onclick="clearCheckedItems()" class="bg-white/10 hover:bg-white/20 text-xs px-3 py-2 rounded-lg backdrop-blur-md border border-white/10 transition">
             <i class="fa-solid fa-trash-can mr-1"></i> Fjern avhukede
@@ -85,27 +85,32 @@
         </div>
       </div>
 
-      <!-- Tabs for Handleliste / Basisvarer -->
+      <!-- Sort Toggle & Subtabs -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="flex border-b border-slate-100 text-sm font-bold bg-slate-50/50">
           <button onclick="switchShoppingSubTab('dinner')" id="subtab-dinner" class="flex-1 py-3 border-b-2 border-emerald-600 text-emerald-700">
-            <i class="fa-solid fa-utensils mr-2"></i>Fra Middagene
+            <i class="fa-solid fa-utensils mr-2"></i>Middager
           </button>
           <button onclick="switchShoppingSubTab('staples')" id="subtab-staples" class="flex-1 py-3 text-slate-500 hover:text-slate-800">
-            <i class="fa-solid fa-box-open mr-2"></i>Faste Basisvarer
+            <i class="fa-solid fa-box-open mr-2"></i>Basisvarer
           </button>
         </div>
 
         <!-- DINNER INGREDIENTS LIST -->
         <div id="shopping-dinner-content" class="p-4">
-          <div id="dinner-ingredients-list" class="divide-y divide-slate-100"></div>
+          <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sortering</span>
+            <button onclick="toggleRouteSort()" id="sort-route-btn" class="text-xs bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-route text-emerald-600"></i> <span id="sort-btn-text">Sorter etter Butikkrute</span>
+            </button>
+          </div>
+          <div id="dinner-ingredients-list" class="space-y-4"></div>
         </div>
 
         <!-- STAPLES LIST -->
         <div id="shopping-staples-content" class="p-4 hidden">
-          <!-- Add staple form -->
           <form onsubmit="addCustomStaple(event)" class="mb-5 flex gap-2">
-            <input type="text" id="staple-name-input" placeholder="Legg til ny basisvare (f.eks. Melk)..." required class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500">
+            <input type="text" id="staple-name-input" placeholder="Legg til ny basisvare..." required class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500">
             <input type="number" id="staple-price-input" placeholder="Pris kr" required min="1" class="w-24 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500">
             <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition">
               <i class="fa-solid fa-plus"></i>
@@ -118,31 +123,29 @@
 
     <!-- VIEW 3: BUDSJETT & KVITTERINGER -->
     <section id="view-budget" class="space-y-6 hidden">
-      <!-- Budget Overview Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
           <div class="flex justify-between items-center text-slate-500 text-xs font-bold uppercase mb-1">
             <span>Ukens Budsjett</span>
             <button onclick="editBudgetGoal()" class="text-emerald-600 hover:underline text-xs"><i class="fa-solid fa-pen"></i> Endre</button>
           </div>
-          <div class="text-2xl font-black text-slate-900" id="budget-goal-display">2 000 kr</div>
+          <div class="text-2xl font-black text-slate-900" id="budget-goal-display">2 500 kr</div>
           <div class="text-xs text-slate-400 mt-1">Mål for matinnkjøp</div>
         </div>
 
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
           <span class="text-slate-500 text-xs font-bold uppercase mb-1 block">Estimert Handleliste</span>
           <div class="text-2xl font-black text-amber-600" id="budget-estimated-display">0 kr</div>
-          <div class="text-xs text-slate-400 mt-1">Basert på meny & basisvarer</div>
+          <div class="text-xs text-slate-400 mt-1">Meny + Basisvarer</div>
         </div>
 
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
           <span class="text-slate-500 text-xs font-bold uppercase mb-1 block">Faktisk Brukt</span>
           <div class="text-2xl font-black text-emerald-600" id="budget-spent-display">0 kr</div>
-          <div class="text-xs text-slate-400 mt-1" id="budget-remaining-display">Gjenstår: 2 000 kr</div>
+          <div class="text-xs text-slate-400 mt-1" id="budget-remaining-display">Gjenstår: 2 500 kr</div>
         </div>
       </div>
 
-      <!-- Progress bar -->
       <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
         <div class="flex justify-between text-xs font-bold text-slate-600 mb-2">
           <span>Budsjettbruk</span>
@@ -153,7 +156,6 @@
         </div>
       </div>
 
-      <!-- Add Receipt / Purchase -->
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-receipt text-emerald-600"></i> Registrer Handletur / Kvittering
@@ -165,7 +167,7 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Beløp (kr)</label>
-            <input type="number" id="receipt-amount" placeholder="f.eks. 650" required min="1" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500">
+            <input type="number" id="receipt-amount" placeholder="f.eks. 850" required min="1" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Dato</label>
@@ -188,7 +190,6 @@
         </form>
       </div>
 
-      <!-- Receipts Log -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
         <h3 class="font-bold text-slate-900 mb-3">Registrerte Innkjøp</h3>
         <div id="receipts-list" class="divide-y divide-slate-100"></div>
@@ -215,7 +216,7 @@
           <ul id="modal-recipe-ingredients" class="space-y-2 text-sm text-slate-700"></ul>
         </div>
         <div>
-          <h4 class="text-xs uppercase font-extrabold tracking-wider text-slate-400 mb-3">Slik gjør dere det</h4>
+          <h4 class="text-xs uppercase font-extrabold tracking-wider text-slate-400 mb-3">Steg for steg</h4>
           <ol id="modal-recipe-steps" class="space-y-3 text-sm text-slate-700 list-decimal list-inside leading-relaxed"></ol>
         </div>
       </div>
@@ -225,30 +226,40 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT LOGIC -->
   <script>
-    // --- DATABASE / RECIPES ---
+    // --- CATEGORIES FOR BUTIKKRUTE ---
+    const STORE_ROUTE = [
+      { id: 'produce', name: '🥦 1. Frukt & Grønt (Inngang)' },
+      { id: 'meat_fish', name: '🥩 2. Kjøtt, Fisk & Pålegg' },
+      { id: 'dry', name: '🌾 3. Tørrvarer, Hermetikk & Krydder' },
+      { id: 'frozen', name: '❄️ 4. Frys' },
+      { id: 'dairy', name: '🥛 5. Meieri & Kjølevarer' },
+      { id: 'bakery_checkout', name: '🛒 6. Brød, Hygiene & Ved Kassen' }
+    ];
+
+    // --- ENHANCED RECIPE DATABASE ---
     const RECIPE_DATABASE = [
       {
         id: 'pizza',
         title: 'Hjemmelaget Fredagspizza',
         tags: ['Familiefavoritt', 'Helg'],
         prepTime: '45 min',
-        estimatedPrice: 160,
+        estimatedPrice: 195,
         fixedDay: 'Fredag',
         ingredients: [
-          { name: 'Pizzamjøl', price: 25 },
-          { name: 'Gjær', price: 10 },
-          { name: 'Pizzasaus / Tomatpuré', price: 25 },
-          { name: 'Revet ost (Norvegia/Mozzarella)', price: 45 },
-          { name: 'Skinke / Kjøttdeig', price: 40 },
-          { name: 'Oregano & Krydder', price: 15 }
+          { name: 'Pizzamjøl (Pizzamel Tipo 00)', amount: '600 g', price: 28, category: 'dry' },
+          { name: 'Tørrgjær', amount: '1 pk', price: 12, category: 'dry' },
+          { name: 'Pizzasaus / Mutti Tomatsaus', amount: '1 boks (400g)', price: 29, category: 'dry' },
+          { name: 'Revet Ost (Norvegia/Mozzarella)', amount: '400 g', price: 58, category: 'dairy' },
+          { name: 'Pizzaskinke / Kjøttdeig', amount: '300 g', price: 48, category: 'meat_fish' },
+          { name: 'Oregano & Krydder', amount: '2 ts', price: 20, category: 'dry' }
         ],
         steps: [
-          'Elt sammen hvetemel, gjær, lunkent vann og litt salt. La heve i 30 minutter.',
-          'Kjevl ut deigen på et stekebrett.',
-          'Smør på pizzasaus, legg på ost og topp med favoritfyll.',
-          'Stek på 225°C i ca. 12-15 minutter til osten er gyllen.'
+          'Bland 600g pizzamel med 1 pk gjær og 1 ts salt. Tilsett ca. 4 dl lunkent vann og 2 ss olivenolje.',
+          'Elt deigen godt i 8–10 minutter. Dekk til og la heve på et varmt sted i 40–50 minutter.',
+          'Kjevl ut deigen så den dekker en hel stekeplate.',
+          'Fordel tomatsausen jevnt utover. Strø over revet ost og topp med skinke eller stekt kjøttdeig.',
+          'Stek nederst i ovnen på 230°C i 12–15 minutter til osten bobler og har gyldne kanter.'
         ]
       },
       {
@@ -256,21 +267,22 @@
         title: 'Klassisk Lørdagstaco',
         tags: ['Helgekos', 'Fast tradition'],
         prepTime: '25 min',
-        estimatedPrice: 190,
+        estimatedPrice: 240,
         fixedDay: 'Lørdag',
         ingredients: [
-          { name: 'Kjøttdeig / Karbonadedeig 400g', price: 65 },
-          { name: 'Tacokrydder', price: 15 },
-          { name: 'Tortillalefser / Skjell', price: 30 },
-          { name: 'Rømme', price: 20 },
-          { name: 'Salsa', price: 20 },
-          { name: 'Ost & Grønnsaker (Løk, mais, agurk, salat)', price: 40 }
+          { name: 'Kjøttdeig / Karbonadedeig', amount: '800 g (2 pk)', price: 110, category: 'meat_fish' },
+          { name: 'Tacokrydder', amount: '2 pk', price: 24, category: 'dry' },
+          { name: 'Tortillalefser (Large)', amount: '2 pk (16 stk)', price: 38, category: 'dry' },
+          { name: 'Seterrømme / Rømme', amount: '1 beger (3 dl)', price: 24, category: 'dairy' },
+          { name: 'Tacosaus / Salsa', amount: '1 glass', price: 22, category: 'dry' },
+          { name: 'Revet ost', amount: '200 g', price: 22, category: 'dairy' },
+          { name: 'Agurk, Mais & Isbergsalat', amount: '1 agurk, 1 boks mais, 1 salat', price: 45, category: 'produce' }
         ],
         steps: [
-          'Brun kjøttdeigen og tilsett tacokrydder med en skvett vann.',
-          'Kutt opp grønnsaker som agurk, paprika, salat og rødløk.',
-          'Varm tortillalefsene i ovnen eller mikrobølgen.',
-          'Sett alt på bordet i skåler og gjør dere klare til taco-fest!'
+          'Brun 800g kjøttdeig i en varm panne. Tilsett 2 pk tacokrydder og 1.5 dl vann. La det småkoke i 5 minutter.',
+          'Kutt agurk i terninger, finn frem maisen og finhakk isbergsalaten.',
+          'Varm tortillalefsene i stekeovnen på 150°C innepakket i folie i 5–8 minutter.',
+          'Sett alle ingredienser og skåler på bordet for familiens stasjonsmåltid!'
         ]
       },
       {
@@ -278,19 +290,20 @@
         title: 'Kremet Laksepanne med Pasta',
         tags: ['Fisk', 'Rask'],
         prepTime: '20 min',
-        estimatedPrice: 180,
+        estimatedPrice: 220,
         ingredients: [
-          { name: 'Laksefiléer 4-pakning', price: 95 },
-          { name: 'Tagliatelle / Pasta', price: 20 },
-          { name: 'Matfløte', price: 25 },
-          { name: 'Brokkoli og Gulerøtter', price: 25 },
-          { name: 'Sitron & Dill', price: 15 }
+          { name: 'Laksefilét uten skinn', amount: '600 g (4 stk)', price: 125, category: 'meat_fish' },
+          { name: 'Tagliatelle / Pasta', amount: '400 g', price: 22, category: 'dry' },
+          { name: 'Matfløte', amount: '1 pk (3 dl)', price: 26, category: 'dairy' },
+          { name: 'Brokkoli & Gulerøtter', amount: '1 brokkoli, 2 gulrøtter', price: 32, category: 'produce' },
+          { name: 'Sitron & Frisk Dill', amount: '1 sitron, 1 bunt dill', price: 15, category: 'produce' }
         ],
         steps: [
-          'Kok pastaen etter anvisningen på pakken.',
-          'Skjær laksen i terninger og stek lett i pannen i et par minutter.',
-          'Tilsett grønnsaker og tøm over matfløten. La det småkoke i 5 minutter.',
-          'Smak til med sitronsaft, salt, pepper og dill. Bland med pastaen.'
+          'Kok 400g tagliatelle i rikelig med lettsaltet vann.',
+          'Skjær laksefiléene i jevne terninger (ca. 2x2 cm).',
+          'Fres brokkolibuketter og gulrotskiver i litt smør i 3 minutter. Tilsett lakseterningene og la dem få litt farge.',
+          'Hell over 3 dl matfløte og la det trekke på lav varme i 4–5 minutter til laksen er gjennomvarm.',
+          'Smak til sausen med presset sitronsaft, salt, pepper og hakket dill. Vend pastaen inn i sausen.'
         ]
       },
       {
@@ -298,19 +311,20 @@
         title: 'Kylling Tandoori med Ris & Nan',
         tags: ['Familie', 'Smakfull'],
         prepTime: '30 min',
-        estimatedPrice: 175,
+        estimatedPrice: 210,
         ingredients: [
-          { name: 'Kyllingfilét 600g', price: 90 },
-          { name: 'Tandoorigryte-base / Paste', price: 30 },
-          { name: 'Rømme / Yoghurt', price: 20 },
-          { name: 'Jasminris', price: 15 },
-          { name: 'Nanbrød', price: 20 }
+          { name: 'Kyllingfilét', amount: '750 g', price: 115, category: 'meat_fish' },
+          { name: 'Tandooripaste / Paste-glass', amount: '1 glass', price: 36, category: 'dry' },
+          { name: 'Matyoghurt / Rømme', amount: '1 beger', price: 22, category: 'dairy' },
+          { name: 'Jasminris', amount: '4 porsjoner', price: 15, category: 'dry' },
+          { name: 'Hvitløks-Nanbrød', amount: '1 pk (2 stk)', price: 22, category: 'bakery_checkout' }
         ],
         steps: [
-          'Skjær kyllingen i strimler og brun i stekepannen.',
-          'Tilsett tandooripaste og rømme, og la det simre i 10 minutter.',
-          'Kok ris og varm nanbrødene i stekeovnen.',
-          'Serveres rykende varmt med en frisk salat til.'
+          'Skjær kyllingfiléene i passe biter.',
+          'Bland 3 ss tandooripaste med 3 ss matyoghurt i en bolle og vend kyllingen inn i marinaden.',
+          'Stek kyllingen i varm panne med litt olje til den er gjennomstekt og har litt stekeskorpe.',
+          'Kok ris etter anvisning og varm nanbrødene i stekeovnen.',
+          'Server med ekstra matyoghurt og en frisk grønn salat.'
         ]
       },
       {
@@ -318,19 +332,19 @@
         title: 'Bestemors Kjøttkaker i Brun Saus',
         tags: ['Norsk tradisjon', 'Husmannskost'],
         prepTime: '40 min',
-        estimatedPrice: 150,
+        estimatedPrice: 185,
         ingredients: [
-          { name: 'Kjøttkaker (ferdige eller farse)', price: 65 },
-          { name: 'Mandelpoteter', price: 30 },
-          { name: 'Brun saus posering', price: 15 },
-          { name: 'Kålstuing / Ertestuing', price: 25 },
-          { name: 'Tyttebærsyltetøy', price: 15 }
+          { name: 'Kjøttkaker (Ferdige eller ferske)', amount: '800 g', price: 90, category: 'meat_fish' },
+          { name: 'Mandelpoteter / Kokepoteter', amount: '1 kg', price: 32, category: 'produce' },
+          { name: 'Brun Saus (Toro poseringer)', amount: '2 poser', price: 24, category: 'dry' },
+          { name: 'Ertestuing (Hermetisk eller frossen)', amount: '1 boks / pk', price: 22, category: 'frozen' },
+          { name: 'Tyttebærsyltetøy', amount: '1 glass', price: 17, category: 'dry' }
         ],
         steps: [
-          'Skrell og kok potetene møre.',
-          'Lag den brune sausen og legg kjøttkakene nedi så de blir gjennomvarme.',
-          'Lag kålstuing eller ertestuing.',
-          'Server tradisjonelt med tyttebær!'
+          'Skrell potetene og kok dem møre i usaltet vann i ca. 20–25 minutter.',
+          'Lag brun saus etter poseanvisningen. Legg kjøttkakene i sausen og la dem trekke på lav varme i 15 minutter.',
+          'Varm ertestuingen forsiktig i en liten kjele.',
+          'Anrett tallerkener med saftige kjøttkaker, varme poteter, ertestuing og en god skje tyttebær.'
         ]
       },
       {
@@ -338,83 +352,66 @@
         title: 'Biff Wok med Sprø Grønnsaker',
         tags: ['Sunn', 'Rask'],
         prepTime: '20 min',
-        estimatedPrice: 195,
+        estimatedPrice: 235,
         ingredients: [
-          { name: 'Biffstrimler 400g', price: 110 },
-          { name: 'Wokgrønnsaker (blanding)', price: 35 },
-          { name: 'Woksaus (Hoisin/Teriyaki)', price: 25 },
-          { name: 'Eggnudler', price: 25 }
+          { name: 'Biffstrimler / Storfekjøtt', amount: '600 g', price: 140, category: 'meat_fish' },
+          { name: 'Wokgrønnsaker (Frossen pose eller fersk)', amount: '1 stor pose (750g)', price: 38, category: 'frozen' },
+          { name: 'Teriyakisaus / Woksaus', amount: '1 flaske', price: 29, category: 'dry' },
+          { name: 'Eggnudler', amount: '1 pk (250g)', price: 28, category: 'dry' }
         ],
         steps: [
-          'Kok nudlene etter pakkeanvisningen.',
-          'Strikk biffstrimlene på høy varme i 2-3 minutter og ta ut av pannen.',
-          'Wokk grønnsakene sprø i et minutt eller to.',
-          'Bland alt sammen i pannen med woksausen og nudlene.'
+          'Kok eggnudlene i 3–4 minutter og skyll raskt i kaldt vann.',
+          'Varm wokpannen (eller en dyp stekepanne) med litt nøytral olje på sterk varme.',
+          'Brun biffstrimlene raskt i to omganger (ca. 1–2 min per omgang) og legg til side.',
+          'Wokk grønnsakene på høy varme til de er varme, men fortsatt sprø.',
+          'Bland kjøttet og nudlene tilbake i pannen, hell over teriyakisausen og vend alt sammen i 1 minutt.'
         ]
       },
       {
         id: 'pasta_bolognese',
         title: 'Pasta Bolognese med Hvitløksbrød',
-        tags: ['Klassiker', 'Barna sin favoritt'],
+        tags: ['Klassiker', 'Familiefavoritt'],
         prepTime: '25 min',
-        estimatedPrice: 140,
+        estimatedPrice: 175,
         ingredients: [
-          { name: 'Kjøttdeig 400g', price: 60 },
-          { name: 'Spagetti', price: 15 },
-          { name: 'Hermetiske tomater & Bolognesekrydder', price: 25 },
-          { name: 'Hvitløksbrød', price: 20 },
-          { name: 'Parmesan', price: 20 }
+          { name: 'Kjøttdeig', amount: '600 g', price: 78, category: 'meat_fish' },
+          { name: 'Spagetti / Penne', amount: '500 g', price: 18, category: 'dry' },
+          { name: 'Hermetiske Hakkede Tomater', amount: '2 bokser', price: 26, category: 'dry' },
+          { name: 'Løk & Hvitløk', amount: '1 løk, 2 fedd hvitløk', price: 12, category: 'produce' },
+          { name: 'Hvitløksbrød (Frossen)', amount: '1 pk (2 stk)', price: 22, category: 'frozen' },
+          { name: 'Parmesan', amount: '1 stykke (100g)', price: 19, category: 'dairy' }
         ],
         steps: [
-          'Brun kjøttdeigen og tilsett de hermetiske tomatene og krydder.',
-          'La kjærligheten simre i 15 minutter mens pastaen koker.',
-          'Varm hvitløksbrød i ovnen.',
-          'Topp med nyrevet parmesan!'
-        ]
-      },
-      {
-        id: 'fiskesuppe',
-        title: 'Kremet Fiskesuppe med Torsk & Reker',
-        tags: ['Fisk', 'Kos'],
-        prepTime: '25 min',
-        estimatedPrice: 170,
-        ingredients: [
-          { name: 'Torskefilét', price: 75 },
-          { name: 'Pillede reker', price: 40 },
-          { name: 'Fiskesuppe-base / Kremfløte', price: 30 },
-          { name: 'Purreløk & Gulrot', price: 15 },
-          { name: 'Baguetter', price: 10 }
-        ],
-        steps: [
-          'Kutt grønnsakene i tynne strimler og fres i smør.',
-          'Hell over suppebasen og fløten og bring til oppkok.',
-          'Legg i torsketerningene og la dem trekke i 5 minutter (skal ikke koke).',
-          'Tilsett rekene rett før servering sammen med varme baguetter.'
+          'Finhakk løk og hvitløk, og fres blankt i litt olje i en dyp panne.',
+          'Tilsett 600g kjøttdeig og brun den skikkelig.',
+          'Hell i de hakkede tomatene, 1 ts oregano, salt og pepper. La sausen småkoke i 15 minutter.',
+          'Kok spagetti al dente og stikk hvitløksbrødene i stekeovnen.',
+          'Server med rikelig med nyrevet parmesan over.'
         ]
       }
     ];
 
     // --- STATE MANAGEMENT ---
     let state = {
-      budgetGoal: 2000,
-      currentMenu: {}, // { 'Mandag': recipeId, ... }
-      checkedIngredients: {}, // { ingredientName: true/false }
+      budgetGoal: 2500,
+      sortByRoute: true,
+      currentMenu: {},
+      checkedIngredients: {},
       staples: [
-        { id: '1', name: 'Melk 1.5L', price: 24, checked: false },
-        { id: '2', name: 'Kneippbrød / Surdeigsbrød', price: 35, checked: false },
-        { id: '3', name: 'Gultost / Norvegia', price: 110, checked: false },
-        { id: '4', name: 'Egg (12-pakning)', price: 45, checked: false },
-        { id: '5', name: 'Smør / Margarin', price: 40, checked: false },
-        { id: '6', name: 'Toalettpapir (8-pk)', price: 65, checked: false }
+        { id: '1', name: 'Tine Helmelk / Lettmelk (1.5L)', price: 29, checked: false, category: 'dairy' },
+        { id: '2', name: 'Grovbrød (Kneipp/Kornbrød)', price: 38, checked: false, category: 'bakery_checkout' },
+        { id: '3', name: 'Norvegia Ost 1kg', price: 135, checked: false, category: 'dairy' },
+        { id: '4', name: 'Prior Egg (12-pakning)', price: 52, checked: false, category: 'dairy' },
+        { id: '5', name: 'Bremykt / Tinesmør', price: 48, checked: false, category: 'dairy' },
+        { id: '6', name: 'Lambi Toalettpapir (8-pk)', price: 79, checked: false, category: 'bakery_checkout' }
       ],
       receipts: [
-        { id: 'r1', store: 'Rema 1000', amount: 840, date: '2026-11-02', person: 'Tore' }
+        { id: 'r1', store: 'Rema 1000', amount: 980, date: '2026-11-02', person: 'Tore' }
       ]
     };
 
     const DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
 
-    // --- INITIALIZATION ---
     window.addEventListener('DOMContentLoaded', () => {
       loadState();
       if (!Object.keys(state.currentMenu).length) {
@@ -427,17 +424,15 @@
     });
 
     function saveState() {
-      localStorage.setItem('matkasse_family_app', JSON.stringify(state));
+      localStorage.setItem('matkasse_family_app_v2', JSON.stringify(state));
     }
 
     function loadState() {
-      const saved = localStorage.getItem('matkasse_family_app');
+      const saved = localStorage.getItem('matkasse_family_app_v2');
       if (saved) {
         try {
           state = { ...state, ...JSON.parse(saved) };
-        } catch(e) {
-          console.error(e);
-        }
+        } catch(e) { console.error(e); }
       }
     }
 
@@ -445,13 +440,11 @@
     function switchTab(tab) {
       ['plan', 'shopping', 'budget'].forEach(t => {
         document.getElementById(`view-${t}`).classList.add('hidden');
-        const btn = document.getElementById(`tab-${t}`);
-        btn.className = "flex-1 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900";
+        document.getElementById(`tab-${t}`).className = "flex-1 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900";
       });
 
       document.getElementById(`view-${tab}`).classList.remove('hidden');
-      const activeBtn = document.getElementById(`tab-${tab}`);
-      activeBtn.className = "flex-1 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 bg-white text-emerald-700 shadow-sm font-bold";
+      document.getElementById(`tab-${tab}`).className = "flex-1 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 bg-white text-emerald-700 shadow-sm font-bold";
 
       if (tab === 'shopping') renderShoppingList();
       if (tab === 'budget') renderBudget();
@@ -471,19 +464,16 @@
       }
     }
 
-    // --- MEAL PLANNER LOGIC ---
+    // --- MEAL PLANNER ---
     function generateWeekPlan() {
       const availablePool = RECIPE_DATABASE.filter(r => !r.fixedDay);
-      // Shuffle pool
       const shuffled = [...availablePool].sort(() => 0.5 - Math.random());
       
       let poolIndex = 0;
       DAYS.forEach(day => {
-        if (day === 'Fredag') {
-          state.currentMenu[day] = 'pizza';
-        } else if (day === 'Lørdag') {
-          state.currentMenu[day] = 'taco';
-        } else {
+        if (day === 'Fredag') state.currentMenu[day] = 'pizza';
+        else if (day === 'Lørdag') state.currentMenu[day] = 'taco';
+        else {
           state.currentMenu[day] = shuffled[poolIndex % shuffled.length].id;
           poolIndex++;
         }
@@ -531,7 +521,7 @@
           </div>
           <div class="flex items-center gap-2 pt-3 border-t border-slate-100">
             <button onclick="openRecipeModal('${day}')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 rounded-xl transition flex items-center justify-center gap-1.5">
-              <i class="fa-solid fa-book-open"></i> Se oppskrift
+              <i class="fa-solid fa-book-open text-emerald-600"></i> Se detaljert oppskrift
             </button>
             ${!isLocked ? `
               <button onclick="swapSingleDay('${day}')" title="Bytt ut middagen" class="p-2 bg-slate-100 hover:bg-emerald-50 text-slate-500 hover:text-emerald-600 rounded-xl transition">
@@ -544,7 +534,7 @@
       });
     }
 
-    // --- RECIPE MODAL ---
+    // --- MODAL ---
     function openRecipeModal(day) {
       const recipeId = state.currentMenu[day];
       const recipe = RECIPE_DATABASE.find(r => r.id === recipeId);
@@ -555,7 +545,10 @@
       const ingList = document.getElementById('modal-recipe-ingredients');
       ingList.innerHTML = recipe.ingredients.map(i => `
         <li class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-          <span class="font-medium text-slate-800">${i.name}</span>
+          <div>
+            <span class="font-bold text-slate-800">${i.name}</span>
+            <span class="text-xs text-emerald-700 font-semibold ml-2">(${i.amount})</span>
+          </div>
           <span class="text-xs text-slate-400 font-semibold">~${i.price} kr</span>
         </li>
       `).join('');
@@ -572,58 +565,77 @@
       document.getElementById('recipe-modal').classList.add('hidden');
     }
 
-    // --- SHOPPING LIST & STAPLES ---
+    // --- SHOPPING & BUTIKKRUTE SORT ---
+    function toggleRouteSort() {
+      state.sortByRoute = !state.sortByRoute;
+      const btnText = document.getElementById('sort-btn-text');
+      btnText.innerText = state.sortByRoute ? 'Sorter etter Butikkrute' : 'Standard Liste';
+      saveState();
+      renderShoppingList();
+    }
+
     function renderShoppingList() {
-      // 1. Compile Dinner Ingredients
-      const compiledIngredients = {};
+      const compiled = {};
       DAYS.forEach(day => {
-        const recipeId = state.currentMenu[day];
-        const recipe = RECIPE_DATABASE.find(r => r.id === recipeId);
+        const recipe = RECIPE_DATABASE.find(r => r.id === state.currentMenu[day]);
         if (recipe) {
           recipe.ingredients.forEach(ing => {
-            if (compiledIngredients[ing.name]) {
-              compiledIngredients[ing.name].price += ing.price;
-              compiledIngredients[ing.name].days.push(day);
+            if (compiled[ing.name]) {
+              compiled[ing.name].price += ing.price;
+              compiled[ing.name].days.push(day);
             } else {
-              compiledIngredients[ing.name] = {
-                name: ing.name,
-                price: ing.price,
-                days: [day]
-              };
+              compiled[ing.name] = { ...ing, days: [day] };
             }
           });
         }
       });
 
-      // Render Dinner List
       const dinnerContainer = document.getElementById('dinner-ingredients-list');
       dinnerContainer.innerHTML = '';
       
       let totalEstPrice = 0;
       let totalItemsCount = 0;
 
-      Object.values(compiledIngredients).forEach(ing => {
-        const isChecked = !!state.checkedIngredients[ing.name];
+      const ingredientsList = Object.values(compiled);
+      ingredientsList.forEach(ing => {
         totalEstPrice += ing.price;
-        if (!isChecked) totalItemsCount++;
-
-        const itemEl = document.createElement('div');
-        itemEl.className = `py-3 flex items-center justify-between cursor-pointer ${isChecked ? 'opacity-40 line-through' : ''}`;
-        itemEl.onclick = () => toggleIngredientCheck(ing.name);
-        itemEl.innerHTML = `
-          <div class="flex items-center gap-3">
-            <input type="checkbox" ${isChecked ? 'checked' : ''} class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500 pointer-events-none">
-            <div>
-              <span class="text-sm font-semibold text-slate-800">${ing.name}</span>
-              <div class="text-[11px] text-slate-400">Middag til: ${ing.days.join(', ')}</div>
-            </div>
-          </div>
-          <span class="text-xs font-bold text-slate-500">${ing.price} kr</span>
-        `;
-        dinnerContainer.appendChild(itemEl);
+        if (!state.checkedIngredients[ing.name]) totalItemsCount++;
       });
 
-      // Render Staples List
+      if (state.sortByRoute) {
+        // Group by Store Route
+        STORE_ROUTE.forEach(cat => {
+          const catItems = ingredientsList.filter(i => (i.category || 'dry') === cat.id);
+          if (catItems.length > 0) {
+            const groupEl = document.createElement('div');
+            groupEl.className = "bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 mb-3";
+            groupEl.innerHTML = `<h4 class="text-xs font-black text-slate-600 uppercase tracking-wider mb-2.5">${cat.name}</h4>`;
+            
+            const listEl = document.createElement('div');
+            listEl.className = "divide-y divide-slate-200/50";
+
+            catItems.forEach(ing => {
+              const isChecked = !!state.checkedIngredients[ing.name];
+              const itemDiv = createIngredientItem(ing, isChecked);
+              listEl.appendChild(itemDiv);
+            });
+
+            groupEl.appendChild(listEl);
+            dinnerContainer.appendChild(groupEl);
+          }
+        });
+      } else {
+        // Standard Simple List
+        const listEl = document.createElement('div');
+        listEl.className = "divide-y divide-slate-100";
+        ingredientsList.forEach(ing => {
+          const isChecked = !!state.checkedIngredients[ing.name];
+          listEl.appendChild(createIngredientItem(ing, isChecked));
+        });
+        dinnerContainer.appendChild(listEl);
+      }
+
+      // Staples List
       const staplesContainer = document.getElementById('staples-list');
       staplesContainer.innerHTML = '';
 
@@ -648,8 +660,26 @@
         staplesContainer.appendChild(stapleEl);
       });
 
-      document.getElementById('shopping-total-price').innerText = `${totalEstPrice} kr`;
-      document.getElementById('shopping-items-count').innerText = `${totalItemsCount} ubehandlede varer`;
+      document.getElementById('shopping-total-price').innerText = `${totalEstPrice.toLocaleString('no-NO')} kr`;
+      document.getElementById('shopping-items-count').innerText = `${totalItemsCount} varer igjen å huke av`;
+    }
+
+    function createIngredientItem(ing, isChecked) {
+      const itemEl = document.createElement('div');
+      itemEl.className = `py-2.5 flex items-center justify-between cursor-pointer ${isChecked ? 'opacity-40 line-through' : ''}`;
+      itemEl.onclick = () => toggleIngredientCheck(ing.name);
+      itemEl.innerHTML = `
+        <div class="flex items-center gap-3">
+          <input type="checkbox" ${isChecked ? 'checked' : ''} class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500 pointer-events-none">
+          <div>
+            <span class="text-sm font-semibold text-slate-800">${ing.name}</span>
+            <span class="text-xs text-emerald-700 font-bold ml-1.5">(${ing.amount})</span>
+            <div class="text-[11px] text-slate-400">Til: ${ing.days.join(', ')}</div>
+          </div>
+        </div>
+        <span class="text-xs font-bold text-slate-500">${ing.price} kr</span>
+      `;
+      return itemEl;
     }
 
     function toggleIngredientCheck(name) {
@@ -701,7 +731,6 @@
 
     // --- BUDGET LOGIC ---
     function renderBudget() {
-      // Calculated Estimated Total
       let estimatedTotal = 0;
       DAYS.forEach(day => {
         const recipe = RECIPE_DATABASE.find(r => r.id === state.currentMenu[day]);
@@ -709,7 +738,6 @@
       });
       state.staples.forEach(s => estimatedTotal += s.price);
 
-      // Total Spent from Receipts
       const totalSpent = state.receipts.reduce((sum, r) => sum + r.amount, 0);
       const remaining = state.budgetGoal - totalSpent;
 
@@ -722,23 +750,18 @@
         remainingEl.innerText = `Gjenstår: ${remaining.toLocaleString('no-NO')} kr`;
         remainingEl.className = "text-xs text-emerald-600 font-semibold mt-1";
       } else {
-        remainingEl.innerText = `Over skjønn med ${Math.abs(remaining).toLocaleString('no-NO')} kr`;
+        remainingEl.innerText = `Over budsjett med ${Math.abs(remaining).toLocaleString('no-NO')} kr`;
         remainingEl.className = "text-xs text-rose-600 font-semibold mt-1";
       }
 
-      // Progress bar
       const percent = Math.min(Math.round((totalSpent / state.budgetGoal) * 100), 100);
       document.getElementById('budget-percent-text').innerText = `${percent}%`;
       const progressBar = document.getElementById('budget-progress-bar');
       progressBar.style.width = `${percent}%`;
       
-      if (percent > 90) {
-        progressBar.className = "bg-rose-500 h-full rounded-full transition-all duration-500";
-      } else {
-        progressBar.className = "bg-emerald-500 h-full rounded-full transition-all duration-500";
-      }
+      if (percent > 90) progressBar.className = "bg-rose-500 h-full rounded-full transition-all duration-500";
+      else progressBar.className = "bg-emerald-500 h-full rounded-full transition-all duration-500";
 
-      // Render Receipts Log
       const receiptsContainer = document.getElementById('receipts-list');
       receiptsContainer.innerHTML = '';
 
@@ -751,7 +774,7 @@
           item.innerHTML = `
             <div>
               <div class="font-bold text-sm text-slate-800">${r.store}</div>
-              <div class="text-xs text-slate-400">${r.date} • Registrert av ${r.person}</div>
+              <div class="text-xs text-slate-400">${r.date} • Handlet av ${r.person}</div>
             </div>
             <div class="flex items-center gap-3">
               <span class="font-black text-sm text-slate-900">${r.amount} kr</span>
@@ -764,7 +787,6 @@
         });
       }
 
-      // Set default receipt date to today
       const dateInput = document.getElementById('receipt-date');
       if (dateInput && !dateInput.value) {
         dateInput.value = new Date().toISOString().split('T')[0];
@@ -787,15 +809,7 @@
       const date = document.getElementById('receipt-date').value;
       const person = document.getElementById('receipt-person').value;
 
-      const newReceipt = {
-        id: Date.now().toString(),
-        store,
-        amount,
-        date,
-        person
-      };
-
-      state.receipts.unshift(newReceipt);
+      state.receipts.unshift({ id: Date.now().toString(), store, amount, date, person });
       document.getElementById('receipt-store').value = '';
       document.getElementById('receipt-amount').value = '';
       
