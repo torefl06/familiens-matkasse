@@ -6,11 +6,12 @@
   <title>Familien sin Matkasse</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-24 md:pb-8">
@@ -27,9 +28,9 @@
           <p class="text-xs text-emerald-100 font-medium mt-1">Tore, Hege, Synne & Sander</p>
         </div>
       </div>
-      <div class="bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm text-xs font-semibold flex items-center gap-2 border border-white/20">
-        <i class="fa-solid fa-users text-emerald-200"></i>
-        <span>4 personer</span>
+      <div id="sync-status" class="bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm text-xs font-semibold flex items-center gap-2 border border-white/20">
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse" id="sync-dot"></span>
+        <span id="sync-text">Kobler til skyen...</span>
       </div>
     </div>
   </header>
@@ -54,7 +55,7 @@
     <section id="view-plan" class="space-y-6">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <h2 class="text-lg font-bold text-slate-900">Ukens Middagsmeny</h2>
+          <h2 class="text-lg font-bold text-slate-900">Ukens Middagsmeny (Live ☁️)</h2>
           <p class="text-xs text-slate-500">Fredag = Pizza 🍕 | Lørdag = Taco 🌮</p>
         </div>
         <button onclick="generateWeekPlan()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 shadow-sm">
@@ -62,13 +63,11 @@
         </button>
       </div>
 
-      <!-- Days Grid -->
       <div id="weekly-days-list" class="grid gap-4 sm:grid-cols-2"></div>
     </section>
 
     <!-- VIEW 2: HANDLELISTE & BASISVARER -->
     <section id="view-shopping" class="space-y-6 hidden">
-      <!-- Total Estimat Card -->
       <div class="bg-emerald-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
         <div class="absolute -right-6 -bottom-6 opacity-10 text-9xl">
           <i class="fa-solid fa-basket-shopping"></i>
@@ -77,7 +76,7 @@
           <div>
             <span class="text-xs uppercase tracking-wider text-emerald-300 font-bold">Beregnet innkjøp (Rema/Kiwi-snitt)</span>
             <div class="text-3xl font-black mt-1" id="shopping-total-price">0 kr</div>
-            <p class="text-xs text-emerald-200/80 mt-1" id="shopping-items-count">0 varer igjen på listen</p>
+            <p class="text-xs text-emerald-200/80 mt-1" id="shopping-items-count">0 varer igjen å huke av</p>
           </div>
           <button onclick="clearCheckedItems()" class="bg-white/10 hover:bg-white/20 text-xs px-3 py-2 rounded-lg backdrop-blur-md border border-white/10 transition">
             <i class="fa-solid fa-trash-can mr-1"></i> Fjern avhukede
@@ -85,7 +84,6 @@
         </div>
       </div>
 
-      <!-- Sort Toggle & Subtabs -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="flex border-b border-slate-100 text-sm font-bold bg-slate-50/50">
           <button onclick="switchShoppingSubTab('dinner')" id="subtab-dinner" class="flex-1 py-3 border-b-2 border-emerald-600 text-emerald-700">
@@ -96,7 +94,6 @@
           </button>
         </div>
 
-        <!-- DINNER INGREDIENTS LIST -->
         <div id="shopping-dinner-content" class="p-4">
           <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sortering</span>
@@ -107,7 +104,6 @@
           <div id="dinner-ingredients-list" class="space-y-4"></div>
         </div>
 
-        <!-- STAPLES LIST -->
         <div id="shopping-staples-content" class="p-4 hidden">
           <form onsubmit="addCustomStaple(event)" class="mb-5 flex gap-2">
             <input type="text" id="staple-name-input" placeholder="Legg til ny basisvare..." required class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-emerald-500">
@@ -121,7 +117,7 @@
       </div>
     </section>
 
-    <!-- VIEW 3: BUDSJETT & KVITTERINGER -->
+    <!-- VIEW 3: BUDSJETT -->
     <section id="view-budget" class="space-y-6 hidden">
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
@@ -227,7 +223,22 @@
   </div>
 
   <script>
-    // --- CATEGORIES FOR BUTIKKRUTE ---
+    // --- FIREBASE KONFIGURASJON ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyCRL0kwz9plwXWkDE1LvZ2LFORZx5ZpzwM",
+      authDomain: "familiens-matkasse.firebaseapp.com",
+      databaseURL: "https://familiens-matkasse-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "familiens-matkasse",
+      storageBucket: "familiens-matkasse.firebasestorage.app",
+      messagingSenderId: "431359775144",
+      appId: "1:431359775144:web:347bbf695aa3081b070d9d",
+      measurementId: "G-K7YKX8V207"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database().ref('familie_matkasse_data');
+
     const STORE_ROUTE = [
       { id: 'produce', name: '🥦 1. Frukt & Grønt (Inngang)' },
       { id: 'meat_fish', name: '🥩 2. Kjøtt, Fisk & Pålegg' },
@@ -237,7 +248,6 @@
       { id: 'bakery_checkout', name: '🛒 6. Brød, Hygiene & Ved Kassen' }
     ];
 
-    // --- ENHANCED RECIPE DATABASE ---
     const RECIPE_DATABASE = [
       {
         id: 'pizza',
@@ -391,7 +401,6 @@
       }
     ];
 
-    // --- STATE MANAGEMENT ---
     let state = {
       budgetGoal: 2500,
       sortByRoute: true,
@@ -405,34 +414,43 @@
         { id: '5', name: 'Bremykt / Tinesmør', price: 48, checked: false, category: 'dairy' },
         { id: '6', name: 'Lambi Toalettpapir (8-pk)', price: 79, checked: false, category: 'bakery_checkout' }
       ],
-      receipts: [
-        { id: 'r1', store: 'Rema 1000', amount: 980, date: '2026-11-02', person: 'Tore' }
-      ]
+      receipts: []
     };
 
     const DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
 
+    // --- FIREBASE LIVE SYNCHRONIZATION ---
     window.addEventListener('DOMContentLoaded', () => {
-      loadState();
-      if (!Object.keys(state.currentMenu).length) {
-        generateWeekPlan();
-      } else {
-        renderPlan();
-      }
-      renderShoppingList();
-      renderBudget();
+      db.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          state = data;
+          updateSyncStatus(true);
+          renderPlan();
+          renderShoppingList();
+          renderBudget();
+        } else {
+          generateWeekPlan();
+        }
+      }, (error) => {
+        console.error(error);
+        updateSyncStatus(false);
+      });
     });
 
     function saveState() {
-      localStorage.setItem('matkasse_family_app_v2', JSON.stringify(state));
+      db.set(state);
     }
 
-    function loadState() {
-      const saved = localStorage.getItem('matkasse_family_app_v2');
-      if (saved) {
-        try {
-          state = { ...state, ...JSON.parse(saved) };
-        } catch(e) { console.error(e); }
+    function updateSyncStatus(online) {
+      const dot = document.getElementById('sync-dot');
+      const text = document.getElementById('sync-text');
+      if (online) {
+        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        text.innerText = "Familien Synket Live ☁️";
+      } else {
+        dot.className = "w-2 h-2 rounded-full bg-rose-400 animate-pulse";
+        text.innerText = "Frakoblet skyen";
       }
     }
 
@@ -470,6 +488,8 @@
       const shuffled = [...availablePool].sort(() => 0.5 - Math.random());
       
       let poolIndex = 0;
+      if (!state.currentMenu) state.currentMenu = {};
+      
       DAYS.forEach(day => {
         if (day === 'Fredag') state.currentMenu[day] = 'pizza';
         else if (day === 'Lørdag') state.currentMenu[day] = 'taco';
@@ -480,8 +500,6 @@
       });
 
       saveState();
-      renderPlan();
-      renderShoppingList();
     }
 
     function swapSingleDay(day) {
@@ -491,17 +509,18 @@
       const nextRecipe = pool[Math.floor(Math.random() * pool.length)];
       state.currentMenu[day] = nextRecipe.id;
       saveState();
-      renderPlan();
-      renderShoppingList();
     }
 
     function renderPlan() {
       const container = document.getElementById('weekly-days-list');
+      if (!container || !state.currentMenu) return;
       container.innerHTML = '';
 
       DAYS.forEach(day => {
         const recipeId = state.currentMenu[day];
         const recipe = RECIPE_DATABASE.find(r => r.id === recipeId);
+        if (!recipe) return;
+
         const isLocked = day === 'Fredag' || day === 'Lørdag';
 
         const card = document.createElement('div');
@@ -521,7 +540,7 @@
           </div>
           <div class="flex items-center gap-2 pt-3 border-t border-slate-100">
             <button onclick="openRecipeModal('${day}')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 rounded-xl transition flex items-center justify-center gap-1.5">
-              <i class="fa-solid fa-book-open text-emerald-600"></i> Se detaljert oppskrift
+              <i class="fa-solid fa-book-open text-emerald-600"></i> Oppskrift
             </button>
             ${!isLocked ? `
               <button onclick="swapSingleDay('${day}')" title="Bytt ut middagen" class="p-2 bg-slate-100 hover:bg-emerald-50 text-slate-500 hover:text-emerald-600 rounded-xl transition">
@@ -565,17 +584,18 @@
       document.getElementById('recipe-modal').classList.add('hidden');
     }
 
-    // --- SHOPPING & BUTIKKRUTE SORT ---
+    // --- SHOPPING LIST & BUTIKKRUTE ---
     function toggleRouteSort() {
       state.sortByRoute = !state.sortByRoute;
       const btnText = document.getElementById('sort-btn-text');
       btnText.innerText = state.sortByRoute ? 'Sorter etter Butikkrute' : 'Standard Liste';
       saveState();
-      renderShoppingList();
     }
 
     function renderShoppingList() {
       const compiled = {};
+      if (!state.currentMenu) return;
+
       DAYS.forEach(day => {
         const recipe = RECIPE_DATABASE.find(r => r.id === state.currentMenu[day]);
         if (recipe) {
@@ -591,19 +611,21 @@
       });
 
       const dinnerContainer = document.getElementById('dinner-ingredients-list');
+      if (!dinnerContainer) return;
       dinnerContainer.innerHTML = '';
       
       let totalEstPrice = 0;
       let totalItemsCount = 0;
 
       const ingredientsList = Object.values(compiled);
+      if (!state.checkedIngredients) state.checkedIngredients = {};
+
       ingredientsList.forEach(ing => {
         totalEstPrice += ing.price;
         if (!state.checkedIngredients[ing.name]) totalItemsCount++;
       });
 
       if (state.sortByRoute) {
-        // Group by Store Route
         STORE_ROUTE.forEach(cat => {
           const catItems = ingredientsList.filter(i => (i.category || 'dry') === cat.id);
           if (catItems.length > 0) {
@@ -616,8 +638,7 @@
 
             catItems.forEach(ing => {
               const isChecked = !!state.checkedIngredients[ing.name];
-              const itemDiv = createIngredientItem(ing, isChecked);
-              listEl.appendChild(itemDiv);
+              listEl.appendChild(createIngredientItem(ing, isChecked));
             });
 
             groupEl.appendChild(listEl);
@@ -625,7 +646,6 @@
           }
         });
       } else {
-        // Standard Simple List
         const listEl = document.createElement('div');
         listEl.className = "divide-y divide-slate-100";
         ingredientsList.forEach(ing => {
@@ -635,9 +655,10 @@
         dinnerContainer.appendChild(listEl);
       }
 
-      // Staples List
+      // Staples
       const staplesContainer = document.getElementById('staples-list');
       staplesContainer.innerHTML = '';
+      if (!state.staples) state.staples = [];
 
       state.staples.forEach(staple => {
         totalEstPrice += staple.price;
@@ -683,9 +704,9 @@
     }
 
     function toggleIngredientCheck(name) {
+      if (!state.checkedIngredients) state.checkedIngredients = {};
       state.checkedIngredients[name] = !state.checkedIngredients[name];
       saveState();
-      renderShoppingList();
     }
 
     function toggleStapleCheck(id) {
@@ -693,7 +714,6 @@
       if (staple) {
         staple.checked = !staple.checked;
         saveState();
-        renderShoppingList();
       }
     }
 
@@ -709,39 +729,41 @@
         checked: false
       };
 
+      if (!state.staples) state.staples = [];
       state.staples.push(newStaple);
       nameInput.value = '';
       priceInput.value = '';
       saveState();
-      renderShoppingList();
     }
 
     function removeStaple(id) {
       state.staples = state.staples.filter(s => s.id !== id);
       saveState();
-      renderShoppingList();
     }
 
     function clearCheckedItems() {
       state.checkedIngredients = {};
-      state.staples.forEach(s => s.checked = false);
+      if (state.staples) state.staples.forEach(s => s.checked = false);
       saveState();
-      renderShoppingList();
     }
 
     // --- BUDGET LOGIC ---
     function renderBudget() {
       let estimatedTotal = 0;
-      DAYS.forEach(day => {
-        const recipe = RECIPE_DATABASE.find(r => r.id === state.currentMenu[day]);
-        if (recipe) estimatedTotal += recipe.estimatedPrice;
-      });
-      state.staples.forEach(s => estimatedTotal += s.price);
+      if (state.currentMenu) {
+        DAYS.forEach(day => {
+          const recipe = RECIPE_DATABASE.find(r => r.id === state.currentMenu[day]);
+          if (recipe) estimatedTotal += recipe.estimatedPrice;
+        });
+      }
+      if (state.staples) state.staples.forEach(s => estimatedTotal += s.price);
 
+      if (!state.receipts) state.receipts = [];
       const totalSpent = state.receipts.reduce((sum, r) => sum + r.amount, 0);
-      const remaining = state.budgetGoal - totalSpent;
+      const goal = state.budgetGoal || 2500;
+      const remaining = goal - totalSpent;
 
-      document.getElementById('budget-goal-display').innerText = `${state.budgetGoal.toLocaleString('no-NO')} kr`;
+      document.getElementById('budget-goal-display').innerText = `${goal.toLocaleString('no-NO')} kr`;
       document.getElementById('budget-estimated-display').innerText = `${estimatedTotal.toLocaleString('no-NO')} kr`;
       document.getElementById('budget-spent-display').innerText = `${totalSpent.toLocaleString('no-NO')} kr`;
       
@@ -754,7 +776,7 @@
         remainingEl.className = "text-xs text-rose-600 font-semibold mt-1";
       }
 
-      const percent = Math.min(Math.round((totalSpent / state.budgetGoal) * 100), 100);
+      const percent = Math.min(Math.round((totalSpent / goal) * 100), 100);
       document.getElementById('budget-percent-text').innerText = `${percent}%`;
       const progressBar = document.getElementById('budget-progress-bar');
       progressBar.style.width = `${percent}%`;
@@ -763,6 +785,7 @@
       else progressBar.className = "bg-emerald-500 h-full rounded-full transition-all duration-500";
 
       const receiptsContainer = document.getElementById('receipts-list');
+      if (!receiptsContainer) return;
       receiptsContainer.innerHTML = '';
 
       if (state.receipts.length === 0) {
@@ -794,11 +817,10 @@
     }
 
     function editBudgetGoal() {
-      const newGoal = prompt('Sett nytt ukentlig budsjettmål (kr):', state.budgetGoal);
+      const newGoal = prompt('Sett nytt ukentlig budsjettmål (kr):', state.budgetGoal || 2500);
       if (newGoal && !isNaN(newGoal)) {
         state.budgetGoal = parseInt(newGoal);
         saveState();
-        renderBudget();
       }
     }
 
@@ -809,18 +831,17 @@
       const date = document.getElementById('receipt-date').value;
       const person = document.getElementById('receipt-person').value;
 
+      if (!state.receipts) state.receipts = [];
       state.receipts.unshift({ id: Date.now().toString(), store, amount, date, person });
       document.getElementById('receipt-store').value = '';
       document.getElementById('receipt-amount').value = '';
       
       saveState();
-      renderBudget();
     }
 
     function removeReceipt(id) {
       state.receipts = state.receipts.filter(r => r.id !== id);
       saveState();
-      renderBudget();
     }
   </script>
 </body>
