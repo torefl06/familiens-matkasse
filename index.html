@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="no" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Familien sin Matkasse</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 flex flex-col max-w-md md:max-w-4xl mx-auto bg-white shadow-xl min-h-screen relative border-x border-slate-100">
+
+    <!-- App Header -->
+    <header class="bg-emerald-600 text-white p-5 sticky top-0 z-30 shadow-md">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-emerald-500/50 rounded-2xl backdrop-blur-sm border border-emerald-400/30">
+                    <i data-lucide="utensils-crossed" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">Familien sin Matkasse</h1>
+                    <p class="text-xs text-emerald-100 font-medium">Tore • Hege • Synne • Sander</p>
+                </div>
+            </div>
+            <button id="btn-regenerate-all" title="Generer ny uke" class="p-2.5 bg-emerald-500 hover:bg-emerald-700 active:scale-95 transition rounded-xl flex items-center gap-1 text-xs font-semibold shadow-sm">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Ny uke</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-4 pb-24 overflow-y-auto custom-scrollbar">
+
+        <!-- VIEW 1: UKEPLAN -->
+        <section id="view-ukeplan" class="space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Ukeplan for middag</h2>
+                    <p class="text-xs text-slate-500">Beregnet for 4 personer</p>
+                </div>
+                <button id="btn-regenerate-week-text" class="text-xs text-emerald-600 hover:text-emerald-700 font-semibold flex items-center gap-1 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Bytt ut uken
+                </button>
+            </div>
+
+            <!-- List of Days -->
+            <div id="meal-plan-container" class="space-y-3">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+
+        <!-- VIEW 2: HANDLELISTE -->
+        <section id="view-handleliste" class="hidden space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Handleliste</h2>
+                    <p class="text-xs text-slate-500">Ingredienser fra ukeplanen og basisvarer</p>
+                </div>
+                <button id="btn-clear-checked" class="text-xs text-slate-500 hover:text-rose-600 font-medium flex items-center gap-1 bg-slate-100 hover:bg-rose-50 px-3 py-1.5 rounded-lg transition">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Fjern avhukede
+                </button>
+            </div>
+
+            <!-- Custom item input -->
+            <form id="add-custom-item-form" class="flex gap-2">
+                <input type="text" id="custom-item-input" placeholder="Legg til manuell vare (f.eks. Kaffe, Snop)..." 
+                    class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500">
+                <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-1 transition active:scale-95">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Legg til
+                </button>
+            </form>
+
+            <!-- Active List -->
+            <div id="shopping-list-container" class="space-y-2">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+
+        <!-- VIEW 3: BASISVARER -->
+        <section id="view-basisvarer" class="hidden space-y-4">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">Faste basisvarer</h2>
+                <p class="text-xs text-slate-500">Trykk på varene du trenger for å legge dem direkte i handlelisten</p>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="staples-grid">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+
+        <!-- VIEW 4: OPPSKRIFTER -->
+        <section id="view-oppskrifter" class="hidden space-y-4">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">Middagsarkiv & Oppskrifter</h2>
+                <p class="text-xs text-slate-500">Utforsk alle rettene i familien sine favoritter</p>
+            </div>
+
+            <div id="recipes-list-container" class="space-y-3">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Navigation Bar (Bottom) -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md md:max-w-4xl mx-auto bg-white border-t border-slate-200 px-3 py-2 flex justify-around items-center z-40 shadow-lg">
+        <button data-tab="ukeplan" class="nav-btn active flex flex-col items-center gap-1 text-emerald-600 px-3 py-1 rounded-xl transition">
+            <i data-lucide="calendar" class="w-5 h-5"></i>
+            <span class="text-[11px] font-semibold">Ukeplan</span>
+        </button>
+        <button data-tab="handleliste" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 px-3 py-1 rounded-xl transition relative">
+            <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+            <span class="text-[11px] font-semibold">Handleliste</span>
+            <span id="badge-shopping-count" class="hidden absolute top-0 right-2 w-4 h-4 bg-emerald-600 text-white rounded-full text-[10px] font-bold flex items-center justify-center">0</span>
+        </button>
+        <button data-tab="basisvarer" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 px-3 py-1 rounded-xl transition">
+            <i data-lucide="package" class="w-5 h-5"></i>
+            <span class="text-[11px] font-semibold">Basisvarer</span>
+        </button>
+        <button data-tab="oppskrifter" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 px-3 py-1 rounded-xl transition">
+            <i data-lucide="book-open" class="w-5 h-5"></i>
+            <span class="text-[11px] font-semibold">Oppskrifter</span>
+        </button>
+    </nav>
+
+    <!-- RECIPE MODAL -->
+    <div id="recipe-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+        <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-200">
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
+                <div>
+                    <span id="modal-tag" class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100 inline-block mb-1">Middag</span>
+                    <h3 id="modal-title" class="text-xl font-bold text-slate-900">Rettens Navn</h3>
+                    <p id="modal-subtitle" class="text-xs text-slate-500 mt-0.5">Tid: ~30 min • 4 personer</p>
+                </div>
+                <button id="modal-close" class="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-200/50 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="p-5 space-y-6 overflow-y-auto custom-scrollbar">
+                <!-- Ingredients -->
+                <div>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <i data-lucide="shopping-bag" class="w-4 h-4 text-emerald-600"></i> Ingredienser (4 porsjoner)
+                    </h4>
+                    <ul id="modal-ingredients" class="space-y-1.5 text-sm text-slate-700 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+                        <!-- Dynamic list -->
+                    </ul>
+                </div>
+                <!-- Steps -->
+                <div>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <i data-lucide="list-checks" class="w-4 h-4 text-emerald-600"></i> Fremgangsmåte
+                    </h4>
+                    <ol id="modal-steps" class="space-y-3 text-sm text-slate-700">
+                        <!-- Dynamic list -->
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // 1. DINNER RECIPES DATABASE (FAMILY FAVOURITES)
+        const RECIPES = [
+            {
+                id: 'pizza-fredag',
+                title: 'Hjemmelaget Fredagspizza',
+                category: 'Tradisjon',
+                fixedDay: 'Fredag',
+                icon: 'pizza',
+                time: '45 min',
+                ingredients: [
+                    '500g hvetemel',
+                    '1 pakke gjær',
+                    '3 dl lunkent vann',
+                    '400g kjøttdeig / pizzakjøtt',
+                    '1 boks pizzasaus',
+                    '300g revet ost (norvegia/mozarella)',
+                    '1 ss oregano',
+                    'Paprika og løk etter ønske'
+                ],
+                steps: [
+                    'Rør sammen mel, gjær, litt salt og lunkent vann. Hev deigen i 30 minutter.',
+                    'Kjevle ut deigen på et bakepapir.',
+                    'Stek kjøttdeig og tilsett pizzasaus.',
+                    'Smør saus og kjøtt utover deigen, topp med rikelig med ost og oregano.',
+                    'Stek på 225°C i ca 12-15 minutter til osten er gyllen.'
+                ]
+            },
+            {
+                id: 'taco-lordag',
+                title: 'Taco-lørdag',
+                category: 'Tradisjon',
+                fixedDay: 'Lørdag',
+                icon: 'flame',
+                time: '25 min',
+                ingredients: [
+                    '600g kjøttdeig (eller kyllingkjøttdeig)',
+                    '2 poser tacokrydder',
+                    '1 pakke tortillas / tacoskjell',
+                    '1 boks rømme',
+                    '1 glass salsa',
+                    '1 boks mais',
+                    '1 stk agurk, hakket',
+                    '2 stk tomater, terninger',
+                    '150g revet ost',
+                    '1 stk isbergsalat'
+                ],
+                steps: [
+                    'Brun kjøttdeigen i en panne og tilsett tacokrydder samt vann etter anvisning.',
+                    'Kutt opp alle grønnsakene (agurk, tomat, salat) og ha i skåler.',
+                    'Varm tortillalappene i stekeovnen i et par minutter.',
+                    'Dekk bordet og gjør klart for helgens tacofest!'
+                ]
+            },
+            {
+                id: 'laks-agurk',
+                title: 'Ovnsbakt laks med agurksalat og poteter',
+                category: 'Fisk',
+                time: '30 min',
+                ingredients: [
+                    '600g laksefilét',
+                    '800g mandelpoteter',
+                    '1 stk agurk',
+                    '2 ss eddik, 2 ss sukker, 4 ss vann (til agurksalat)',
+                    '1 beger rømme',
+                    'Smør, salt og pepper'
+                ],
+                steps: [
+                    'Kok potetene møre i lettsaltet vann.',
+                    'Skjær agurk tynt med ostehøvel. Bland vann, eddik, sukker og hell over agurken.',
+                    'Legg laksefilétene i en ildfast form, krydre med salt og pepper. Bakes på 200°C i ca. 12-15 minutter.',
+                    'Serveres varmt med kokte poteter, agurksalat og en klatt rømme.'
+                ]
+            },
+            {
+                id: 'kjottkaker',
+                title: 'Kjøttkaker i brun saus med kålstuing',
+                category: 'Husmannskost',
+                time: '40 min',
+                ingredients: [
+                    '600g kjøttkaker (eller ferske)',
+                    '1 boks brun saus (eller lag fra bunnen)',
+                    '1 kg poteter',
+                    '1/2 hodekål',
+                    '2 ss smør, 2 ss mel, 3 dl melk (til kålstuing)',
+                    '1 glass tyttebærsyltetøy'
+                ],
+                steps: [
+                    'Skrell og kok potetene.',
+                    'Varm kjøttkakene forsiktig i den brune sausen.',
+                    'Kutt kål i strimler og kok den mør i litt vann. Smelt smør, rør inn mel og spe med melk. Bland kålen inn i hvit saus og smak til med salt og muskatt.',
+                    'Server kjøttkakene med poteter, kålstuing og rørte tyttebær.'
+                ]
+            },
+            {
+                id: 'kylling-curry',
+                title: 'Kylling Curry med ris og nanbrød',
+                category: 'Kylling',
+                time: '25 min',
+                ingredients: [
+                    '600g kyllingfilét i terninger',
+                    '1 glass tikka masala / curry saus',
+                    '1 boks kokosmelk',
+                    '1 stk paprika og 1/2 løk',
+                    '4 porsjoner jasminris',
+                    '1 pakke nanbrød'
+                ],
+                steps: [
+                    'Sett på ris etter anvisning på pakken.',
+                    'Stek kyllingstrimlene til de har fin farge. Tillsatt grønnsakene.',
+                    'Hell over currysaus og kokosmelk. La det småkoke i 10 minutter.',
+                    'Varm nanbrødene i ovnen og server alt rykende varmt.'
+                ]
+            },
+            {
+                id: 'pasta-carbonara',
+                title: 'Kremet Pasta Carbonara',
+                category: 'Pasta',
+                time: '20 min',
+                ingredients: [
+                    '400g spaghetti',
+                    '200g bacon i terninger',
+                    '3 stk eggeplommer',
+                    '1.5 dl kremfløte / matfløte',
+                    '100g revet parmesan',
+                    'Kvernet sort pepper'
+                ],
+                steps: [
+                    'Kok spaghettien i rikelig med lettsaltet vann.',
+                    'Sprøsteking baconet i en panne.',
+                    'Visp sammen eggeplommer, fløte og parmesan i en bolle.',
+                    'Hell vannet av pastaen (spar på 1/2 dl vann). Bland pasta, bacon og eggblandingen raskt sammen. Tilsett litt pastavann for perfekt kremet konsistens.'
+                ]
+            },
+            {
+                id: 'sosakjott-gryte',
+                title: 'Gryterett med storfekjøtt og ris',
+                category: 'Gryte',
+                time: '35 min',
+                ingredients: [
+                    '600g grytekjøtt / strimlet storfekjøtt',
+                    '1 pose Toro Stroganoff / Favorittgryte',
+                    '3 dl melk / vann',
+                    '1 boks sjampinjong eller fersk sopp',
+                    '4 porsjoner ris',
+                    'Enkel grønn salat'
+                ],
+                steps: [
+                    'Brun kjøttet og soppen godt i en gryte.',
+                    'Bland inn gryteposen med vann og melk som anvist.',
+                    'La gryten småkoke i 15-20 min så smaken setter seg.',
+                    'Serveres med varm ris og frisk salat.'
+                ]
+            },
+            {
+                id: 'fiskeboller',
+                title: 'Fiskeboller i hvit saus med bacon',
+                category: 'Fisk',
+                time: '25 min',
+                ingredients: [
+                    '1 boks fiskeboller i kraft',
+                    '150g bacon i terninger',
+                    '800g poteter',
+                    '2 ss smør, 2 ss mel, melk/kraft (hvit saus)',
+                    '1 ts karri',
+                    '1 pose gulrøtter (raspet)'
+                ],
+                steps: [
+                    'Kok potetene møre.',
+                    'Lag hvit saus: Smelt smør, rør inn mel og spe med kraft fra fiskebollene og melk. Smak til med litt karri, salt og pepper.',
+                    'Legg fiskebollene i sausen og la dem bli gjennomvarme.',
+                    'Sprøstek baconet og rasp gulrøttene.',
+                    'Serveres tradisjonelt med kokte poteter, karrisaus, bacon og råkost.'
+                ]
+            },
+            {
+                id: 'pannekaker-suppere',
+                title: 'Tomatsuppe med egg & Pannekaker',
+                category: 'Rask',
+                time: '30 min',
+                ingredients: [
+                    '1 pose tomatsuppe (eller 2 bokser hermetiske tomater + buljong)',
+                    '4 stk egg (kokte)',
+                    '3 dl hvetemel',
+                    '6 dl melk',
+                    '3 stk egg (til pannekaker)',
+                    'Sukker og blåbærsyltetøy'
+                ],
+                steps: [
+                    'Lag tomatsuppen og kok 4 egg til hardkokt.',
+                    'Visp sammen røre til pannekaker (melk, mel, egg og en klype salt).',
+                    'Stek gylne pannekaker i smør.',
+                    'Spis varm tomatsuppe med halve egg først, og pannekaker til "dessert"!'
+                ]
+            },
+            {
+                id: 'wok-kylling',
+                title: 'Fargerik Kyllingwok med nudler',
+                category: 'Kylling',
+                time: '20 min',
+                ingredients: [
+                    '500g kyllingfilét i strimler',
+                    '1 pose frossen wokgrønnsaker (eller fersk paprika, brokkoli, gulrot)',
+                    '1 flaske teriyakisaus / woksaus',
+                    '1 pakke eggnudler',
+                    'Sesamfrø til pynt'
+                ],
+                steps: [
+                    'Kok nudler som anvist på pakken.',
+                    'Stek kyllingen på høy varme i wok/stekepanne til den er gjennomstekt.',
+                    'Tilsett grønnsakene og wok i 3-4 minutter til de er sprø-møre.',
+                    'Bland inn nudler og teriyakisaus. Dryss over litt sesamfrø.'
+                ]
+            }
+        ];
+
+        // 2. STAPLES DATABASE (BASISVARER)
+        const STAPLE_ITEMS = [
+            { id: 'st-1', name: 'Melk (Hel/Lett)', icon: 'milk' },
+            { id: 'st-2', name: 'Grovbrød', icon: 'sandwich' },
+            { id: 'st-3', name: 'Egg (12-pakning)', icon: 'egg' },
+            { id: 'st-4', name: 'Gulost (Norvegia)', icon: 'cheese' },
+            { id: 'st-5', name: 'Smør / Margarin', icon: 'box' },
+            { id: 'st-6', name: 'Kaffe', icon: 'coffee' },
+            { id: 'st-7', name: 'Dopapir / Tørkerull', icon: 'scroll' },
+            { id: 'st-8', name: 'Frukt (Epler/Bananer)', icon: 'apple' },
+            { id: 'st-9', name: 'Leverpostei / Pålegg', icon: 'utensils' }
+        ];
+
+        // 3. DAYS OF THE WEEK
+        const DAYS = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
+
+        // 4. STATE MANAGEMENT
+        let currentPlan = {}; // { 'Mandag': recipeObj, ... }
+        let customShoppingItems = []; // [{ id, text, checked }]
+        let checkedIngredients = {}; // { 'ingredientName': true/false }
+
+        // Load State from LocalStorage
+        function loadState() {
+            const savedPlan = localStorage.getItem('matkasse_plan');
+            const savedCustom = localStorage.getItem('matkasse_custom_items');
+            const savedChecked = localStorage.getItem('matkasse_checked');
+
+            if (savedPlan) {
+                currentPlan = JSON.parse(savedPlan);
+            } else {
+                generateNewWeekPlan();
+            }
+
+            if (savedCustom) {
+                customShoppingItems = JSON.parse(savedCustom);
+            }
+
+            if (savedChecked) {
+                checkedIngredients = JSON.parse(savedChecked);
+            }
+        }
+
+        // Save State
+        function saveState() {
+            localStorage.setItem('matkasse_plan', JSON.stringify(currentPlan));
+            localStorage.setItem('matkasse_custom_items', JSON.stringify(customShoppingItems));
+            localStorage.setItem('matkasse_checked', JSON.stringify(checkedIngredients));
+        }
+
+        // 5. GENERATE MEAL PLAN
+        function generateNewWeekPlan() {
+            const dynamicRecipes = RECIPES.filter(r => !r.fixedDay);
+            const shuffled = [...dynamicRecipes].sort(() => 0.5 - Math.random());
+            
+            let dynamicIndex = 0;
+            DAYS.forEach(day => {
+                if (day === 'Fredag') {
+                    currentPlan[day] = RECIPES.find(r => r.id === 'pizza-fredag');
+                } else if (day === 'Lørdag') {
+                    currentPlan[day] = RECIPES.find(r => r.id === 'taco-lordag');
+                } else {
+                    currentPlan[day] = shuffled[dynamicIndex % shuffled.length];
+                    dynamicIndex++;
+                }
+            });
+            saveState();
+        }
+
+        function regenerateSingleDay(day) {
+            if (day === 'Fredag' || day === 'Lørdag') return; // Fixed days
+            const dynamicRecipes = RECIPES.filter(r => !r.fixedDay);
+            const currentRecipeId = currentPlan[day]?.id;
+            const available = dynamicRecipes.filter(r => r.id !== currentRecipeId);
+            const random = available[Math.floor(Math.random() * available.length)];
+            currentPlan[day] = random;
+            saveState();
+            renderAll();
+        }
+
+        // 6. UI RENDER FUNCTIONS
+
+        // Render Week Plan View
+        function renderWeekPlan() {
+            const container = document.getElementById('meal-plan-container');
+            container.innerHTML = '';
+
+            DAYS.forEach(day => {
+                const recipe = currentPlan[day];
+                const isFixed = day === 'Fredag' || day === 'Lørdag';
+
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-2xl border transition flex items-center justify-between gap-3 ${
+                    isFixed ? 'bg-amber-50/60 border-amber-200/70' : 'bg-white border-slate-100 shadow-sm hover:border-slate-200'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3.5 flex-1 cursor-pointer" onclick="openRecipeModal('${recipe.id}')">
+                        <div class="w-10 h-10 rounded-xl ${isFixed ? 'bg-amber-500 text-white' : 'bg-emerald-100 text-emerald-700'} flex items-center justify-center font-bold text-sm shrink-0">
+                            ${day.substring(0, 3)}
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold ${isFixed ? 'text-amber-700' : 'text-slate-400'} uppercase">${day}</span>
+                                ${isFixed ? '<span class="text-[10px] font-extrabold bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded">Fast tradisjon</span>' : ''}
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm sm:text-base hover:text-emerald-600 transition leading-snug">${recipe.title}</h3>
+                            <span class="text-xs text-slate-500 font-medium">${recipe.time} • Les oppskrift →</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        ${!isFixed ? `
+                            <button onclick="event.stopPropagation(); regenerateSingleDay('${day}')" title="Bytt middag for ${day}" class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        // Render Combined Shopping List View
+        function renderShoppingList() {
+            const container = document.getElementById('shopping-list-container');
+            container.innerHTML = '';
+
+            // Aggregate dinner ingredients
+            const ingredientsMap = {};
+            DAYS.forEach(day => {
+                const recipe = currentPlan[day];
+                if (recipe && recipe.ingredients) {
+                    recipe.ingredients.forEach(item => {
+                        if (!ingredientsMap[item]) {
+                            ingredientsMap[item] = [];
+                        }
+                        ingredientsMap[item].push(day);
+                    });
+                }
+            });
+
+            const allDinnerItems = Object.keys(ingredientsMap);
+            let totalItemCount = allDinnerItems.length + customShoppingItems.length;
+
+            // Update badge count
+            const badge = document.getElementById('badge-shopping-count');
+            if (totalItemCount > 0) {
+                badge.innerText = totalItemCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            if (totalItemCount === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm">Handlelisten er tom.</div>`;
+                return;
+            }
+
+            // 1. Dinners Section
+            if (allDinnerItems.length > 0) {
+                const sectionTitle = document.createElement('h3');
+                sectionTitle.className = 'text-xs font-bold text-slate-400 uppercase tracking-wider pt-2 pb-1';
+                sectionTitle.innerText = 'Middagsingredienser';
+                container.appendChild(sectionTitle);
+
+                allDinnerItems.forEach(item => {
+                    const isChecked = !!checkedIngredients[item];
+                    const daysList = ingredientsMap[item].join(', ');
+
+                    const row = document.createElement('div');
+                    row.className = `p-3 rounded-xl border flex items-center justify-between gap-3 transition cursor-pointer ${
+                        isChecked ? 'bg-slate-50 border-slate-100 text-slate-400 line-through' : 'bg-white border-slate-200 text-slate-800'
+                    }`;
+                    row.onclick = () => toggleCheckIngredient(item);
+
+                    row.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-5 h-5 rounded-md border ${isChecked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300'} flex items-center justify-center transition">
+                                ${isChecked ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}
+                            </div>
+                            <span class="text-sm font-medium">${item}</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 font-semibold bg-slate-100 px-2 py-0.5 rounded-full">${daysList}</span>
+                    `;
+                    container.appendChild(row);
+                });
+            }
+
+            // 2. Extra & Staples Section
+            if (customShoppingItems.length > 0) {
+                const sectionTitle = document.createElement('h3');
+                sectionTitle.className = 'text-xs font-bold text-slate-400 uppercase tracking-wider pt-4 pb-1';
+                sectionTitle.innerText = 'Basisvarer & Ekstra';
+                container.appendChild(sectionTitle);
+
+                customShoppingItems.forEach(item => {
+                    const isChecked = !!item.checked;
+
+                    const row = document.createElement('div');
+                    row.className = `p-3 rounded-xl border flex items-center justify-between gap-3 transition cursor-pointer ${
+                        isChecked ? 'bg-slate-50 border-slate-100 text-slate-400 line-through' : 'bg-white border-slate-200 text-slate-800'
+                    }`;
+                    row.onclick = () => toggleCheckCustomItem(item.id);
+
+                    row.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-5 h-5 rounded-md border ${isChecked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300'} flex items-center justify-center transition">
+                                ${isChecked ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}
+                            </div>
+                            <span class="text-sm font-medium">${item.text}</span>
+                        </div>
+                        <button onclick="event.stopPropagation(); removeCustomItem('${item.id}')" class="text-slate-300 hover:text-rose-500 p-1">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    `;
+                    container.appendChild(row);
+                });
+            }
+
+            lucide.createIcons();
+        }
+
+        // Toggle Checks
+        function toggleCheckIngredient(item) {
+            checkedIngredients[item] = !checkedIngredients[item];
+            saveState();
+            renderShoppingList();
+        }
+
+        function toggleCheckCustomItem(id) {
+            const found = customShoppingItems.find(i => i.id === id);
+            if (found) {
+                found.checked = !found.checked;
+                saveState();
+                renderShoppingList();
+            }
+        }
+
+        function removeCustomItem(id) {
+            customShoppingItems = customShoppingItems.filter(i => i.id !== id);
+            saveState();
+            renderShoppingList();
+        }
+
+        function addStapleToShoppingList(stapleName) {
+            // Check if already in list
+            const exists = customShoppingItems.some(i => i.text.toLowerCase() === stapleName.toLowerCase());
+            if (!exists) {
+                customShoppingItems.push({
+                    id: 'custom-' + Date.now(),
+                    text: stapleName,
+                    checked: false
+                });
+                saveState();
+                renderShoppingList();
+            }
+        }
+
+        // Render Staples View
+        function renderStaples() {
+            const container = document.getElementById('staples-grid');
+            container.innerHTML = '';
+
+            STAPLE_ITEMS.forEach(staple => {
+                const added = customShoppingItems.some(i => i.text.toLowerCase() === staple.name.toLowerCase());
+
+                const btn = document.createElement('button');
+                btn.className = `p-4 rounded-2xl border text-left flex flex-col justify-between transition ${
+                    added 
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
+                    : 'bg-white border-slate-200 hover:border-emerald-300 text-slate-800 shadow-sm'
+                }`;
+                btn.onclick = () => addStapleToShoppingList(staple.name);
+
+                btn.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="p-2 rounded-xl ${added ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}">
+                            <i data-lucide="${staple.icon || 'box'}" class="w-5 h-5"></i>
+                        </div>
+                        ${added ? '<span class="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">Lagt til</span>' : ''}
+                    </div>
+                    <span class="text-xs font-bold">${staple.name}</span>
+                `;
+                container.appendChild(btn);
+            });
+            lucide.createIcons();
+        }
+
+        // Render Recipes Archive View
+        function renderRecipes() {
+            const container = document.getElementById('recipes-list-container');
+            container.innerHTML = '';
+
+            RECIPES.forEach(recipe => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:border-emerald-300 transition cursor-pointer";
+                card.onclick = () => openRecipeModal(recipe.id);
+
+                card.innerHTML = `
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">${recipe.category}</span>
+                        <h3 class="font-bold text-slate-800 text-sm mt-1">${recipe.title}</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">${recipe.ingredients.length} ingredienser • ${recipe.time}</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-slate-300"></i>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        // 7. RECIPE MODAL LOGIC
+        function openRecipeModal(recipeId) {
+            const recipe = RECIPES.find(r => r.id === recipeId);
+            if (!recipe) return;
+
+            document.getElementById('modal-title').innerText = recipe.title;
+            document.getElementById('modal-tag').innerText = recipe.category || 'Middag';
+            document.getElementById('modal-subtitle').innerText = `Tid: ${recipe.time} • Beregnet for 4 personer`;
+
+            const ingList = document.getElementById('modal-ingredients');
+            ingList.innerHTML = recipe.ingredients.map(i => `<li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>${i}</li>`).join('');
+
+            const stepsList = document.getElementById('modal-steps');
+            stepsList.innerHTML = recipe.steps.map((step, idx) => `
+                <li class="flex gap-3">
+                    <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">${idx + 1}</span>
+                    <span class="leading-relaxed">${step}</span>
+                </li>
+            `).join('');
+
+            const modal = document.getElementById('recipe-modal');
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            document.getElementById('recipe-modal').classList.add('hidden');
+        }
+
+        // 8. TAB NAVIGATION LOGIC
+        function setupTabs() {
+            const buttons = document.querySelectorAll('.nav-btn');
+            const views = {
+                ukeplan: document.getElementById('view-ukeplan'),
+                handleliste: document.getElementById('view-handleliste'),
+                basisvarer: document.getElementById('view-basisvarer'),
+                oppskrifter: document.getElementById('view-oppskrifter')
+            };
+
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tab = btn.getAttribute('data-tab');
+
+                    // Reset active states
+                    buttons.forEach(b => {
+                        b.classList.remove('text-emerald-600', 'active');
+                        b.classList.add('text-slate-400');
+                    });
+                    btn.classList.remove('text-slate-400');
+                    btn.classList.add('text-emerald-600', 'active');
+
+                    // Hide all views
+                    Object.values(views).forEach(v => v.classList.add('hidden'));
+
+                    // Show selected view
+                    if (views[tab]) {
+                        views[tab].classList.remove('hidden');
+                    }
+
+                    // Render fresh data if needed
+                    if (tab === 'handleliste') renderShoppingList();
+                    if (tab === 'basisvarer') renderStaples();
+                    if (tab === 'oppskrifter') renderRecipes();
+                });
+            });
+        }
+
+        // Render everything
+        function renderAll() {
+            renderWeekPlan();
+            renderShoppingList();
+            renderStaples();
+            renderRecipes();
+        }
+
+        // 9. INITIALIZATION & EVENT LISTENERS
+        window.onload = function() {
+            loadState();
+            setupTabs();
+            renderAll();
+
+            // Modal events
+            document.getElementById('modal-close').addEventListener('click', closeModal);
+            document.getElementById('recipe-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'recipe-modal') closeModal();
+            });
+
+            // Regenerate all button
+            document.getElementById('btn-regenerate-all').addEventListener('click', () => {
+                generateNewWeekPlan();
+                renderAll();
+            });
+            document.getElementById('btn-regenerate-week-text').addEventListener('click', () => {
+                generateNewWeekPlan();
+                renderAll();
+            });
+
+            // Clear checked items button
+            document.getElementById('btn-clear-checked').addEventListener('click', () => {
+                // Clear checked dinner ingredients
+                Object.keys(checkedIngredients).forEach(k => {
+                    if (checkedIngredients[k]) delete checkedIngredients[k];
+                });
+                // Clear checked custom items
+                customShoppingItems = customShoppingItems.filter(i => !i.checked);
+                saveState();
+                renderShoppingList();
+            });
+
+            // Add custom item form
+            document.getElementById('add-custom-item-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const input = document.getElementById('custom-item-input');
+                const text = input.value.trim();
+                if (text) {
+                    customShoppingItems.push({
+                        id: 'custom-' + Date.now(),
+                        text: text,
+                        checked: false
+                    });
+                    input.value = '';
+                    saveState();
+                    renderShoppingList();
+                }
+            });
+        };
+    </script>
+</body>
+</html>
